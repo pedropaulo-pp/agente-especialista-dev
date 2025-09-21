@@ -11,9 +11,11 @@ import contextlib
 # 1. CONFIGURAÇÃO DA CHAVE E CLIENTE
 # *****************************************************************
 try:
+    # O Streamlit Cloud carrega a chave do painel de Secrets
     CHAVE_API = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=CHAVE_API)
 except Exception:
+    # Mensagem de erro para o ambiente local, se o secrets.toml não for encontrado
     st.error("Erro: A chave de API não pôde ser carregada do arquivo de segredos. Verifique o secrets.toml.")
     st.stop()
 
@@ -130,10 +132,10 @@ CONFIG_AGENTE = types.GenerateContentConfig(
 
 # Layout e Título (Com o ícone 🧠 na barra superior/aba)
 st.set_page_config(
-    page_title=" Piter - IA", 
+    page_title="Piter - IA", 
     layout="wide", 
     initial_sidebar_state="collapsed", 
-    page_icon="🧠" # <-- CORREÇÃO: Adicionando o ícone do Piter
+    page_icon="🧠" 
 )
 
 # Funções de Controle de Sessão
@@ -161,18 +163,53 @@ def load_selected_chat(session_id, title):
     )
 
 
-# CSS que funciona: Apenas esconde o menu do Streamlit
+# --- BLOC DE CSS COMPLETO E CORRIGIDO (INÍCIO) ---
 st.markdown("""
 <style>
-/* Esconde o menu de hambúrguer e o botão "Deploy" do Streamlit */
+/* 1. Esconde o menu de hambúrguer e o botão "Deploy" do Streamlit */
 div.css-1l00lrh.e1tzin5v3 {
     visibility: hidden;
 }
 div.css-1l00lrh.e1tzin5v3::before {
     visibility: hidden;
 }
+
+/* 2. ANIMAÇÃO: Cria o efeito de luz pulsante (Gemini-like) */
+@keyframes glowing {
+    0% { border-color: #5B8FF9; box-shadow: 0 0 7px #5B8FF9; } /* Azul claro */
+    50% { border-color: #FF5733; box-shadow: 0 0 15px #FF5733; } /* Laranja/Vermelho */
+    100% { border-color: #5B8FF9; box-shadow: 0 0 7px #5B8FF9; }
+}
+
+/* 3. Aplica a borda e a animação ao contêiner GERAL do st.chat_input */
+/* CORREÇÃO FINAL ROBUSTA: Usa a classe genérica do componente de chat */
+.stChatInput {
+    /* Define o contêiner de entrada como alvo */
+    position: relative; 
+    
+    /* Aplica a borda e a animação */
+    border: 2px solid #333; 
+    border-radius: 0.7rem;
+    animation: glowing 3s infinite alternate; 
+    transition: all 0.3s ease-in-out;
+    padding: 2px;
+}
+
+/* 4. Remove a borda padrão do campo de texto interno para evitar bordas duplicadas */
+[data-testid="stChatInputTextArea"] {
+    border: none !important; 
+    box-shadow: none !important;
+}
+
+/* 5. Estilo ao passar o mouse */
+.stChatInput:hover {
+    border: 2px solid #555;
+    box-shadow: none;
+    animation: none;
+}
 </style>
 """, unsafe_allow_html=True)
+# --- BLOC DE CSS COMPLETO E CORRIGIDO (FIM) ---
 
 
 st.title("🧠 Olá, sou o Piter!") 
@@ -189,7 +226,7 @@ if "current_session_title" not in st.session_state:
 # Sidebar (Barra Lateral) e Interface de Histórico
 with st.sidebar:
     st.title("Sobre Piter 🧠")
-    st.markdown("Piter é um assistente de codificação baseado analise e criação.")
+    st.markdown("Piter é um assistente de codificação baseado em **Google Gemini** e **Streamlit**.")
     st.markdown("**Foco:** Desenvolvimento Web e Android.")
     
     # --- Seção de Upload de Arquivos ---
@@ -243,7 +280,7 @@ for message in st.session_state.chat_session.get_history():
     role = "user" if message.role == "user" else "assistant"
     
     if role == "user":
-        avatar_icon = "👤" # CORREÇÃO: Usando o avatar de usuário consistente
+        avatar_icon = "👤" 
     else:
         avatar_icon = "🧠"
     
